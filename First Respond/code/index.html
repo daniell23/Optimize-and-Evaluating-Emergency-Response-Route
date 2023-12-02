@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="./static/css/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="./static/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+  <script src="./static/data.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <div class="map-container">
+      <div class="header">
+        <div class="icon" @click="handleDialog"></div>
+        <div class="title">FirstRespond: Madison Emergency Route Assistant</div>
+        <div class="scroll" @click="scrollToElement">Paper</div>
+      </div>
+      <div id="map"></div>
+      <el-dialog :visible.sync="dialogVisible" width="41%">
+        <span>
+          <div class="text">
+            <h1 class="center_text">Welcome to FirstRespond! </h1>
+            <p>This is and interactive map for exploring Madison Emergency Route. This is a great map for you to find
+              the most effciency route to the emergency
+              departments like hosipital, fire station, and police departments when you are in emergency situation. It
+              is very simple to use, you just need
+              to select the location and department you want to go to and then enter the location, the map will show the
+              specific route.</p>
+
+
+            <p> Below the map, there is also an introduction and analysis of Madison's road network, where we can better
+              understand Madison's road planning
+              and current situation.</p>
+
+            <p> Welcome to exploring Madison!</p>
+          </div>
+        </span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="dialogVisible = false">Ok</el-button>
+        </span>
+      </el-dialog>
+      <div class="left-panel">
+        <el-tabs v-model="activeName">
+          <el-tab-pane label="Hospital" name="first">
+            <div>
+              <div>From:</div>
+              <el-input v-model="hospitalInput" placeholder="Please Enter"></el-input>
+            </div>
+            <div>
+              <div>To:</div>
+              <el-select v-model="hospital" placeholder="Please Select">
+                <el-option v-for="item in hospitalOptions" :key="item.value" :label="item.label" :value="item.value">
+                </el-option>
+              </el-select>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="Fire" name="second">
+            <div>
+              <div>From:</div>
+              <el-select v-model="fireStation" placeholder="Please Select">
+                <el-option v-for="item in fireOptions" :key="item.value" :label="item.label" :value="item.value">
+                </el-option>
+              </el-select>
+            </div>
+            <div>
+              <div>To:</div>
+              <el-input v-model="fireInput" placeholder="Please Enter"></el-input>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="Police" name="third">
+            <div>
+              <div>From:</div>
+              <el-select v-model="policeStation" placeholder="Please Select">
+                <el-option v-for="item in policeOptions" :key="item.value" :label="item.label" :value="item.value">
+                </el-option>
+              </el-select>
+            </div>
+            <div>
+              <div>To:</div>
+              <el-input v-model="policeInput" placeholder="Please Enter"></el-input>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+        <div class="action-btns">
+          <el-button class="search-btn" type="primary" @click="handleSearchRoute">Search</el-button>
+          <el-button class="search-btn" type="primary" @click="handleRefresh">Refresh</el-button>
+        </div>
+
+      </div>
+      <div class="right-panel">
+        <el-checkbox-group v-model="checkList" @change="handleChangeCheck">
+          <el-checkbox label="Hospital"></el-checkbox>
+          <el-checkbox label="Fire Station"></el-checkbox>
+          <el-checkbox label="Police Station"></el-checkbox>
+        </el-checkbox-group>
+      </div>
+    </div>
+    <div class="text-container" id="targetElement">
+      <br></br>
+      <h2 class="h0"> <strong>The Madison, WI Road Introduction </strong> </h2>
+      <div class="wrapper">
+        <img src="static/img/Madisonpic.jpg" alt="Image" class="Madisonpic">
+      </div>
+
+      <h2 class="h1"><br></br> <strong> Brief Instruction to Madison, WI </strong>, </h2>
+      <div class="content-container">
+
+        <p class="paragraph1">
+          Madison is the capital of Wisconsin, U.S., Wisconsin's second largest city. According to “Connect Great
+          Madison
+          2050 Regional
+          Transportation Plan”, the Madison is growing very fast. From 2000-2020 the Dane County population grew by 32%,
+          That's an increase
+          of about 135,000 people. Between 2020 and 2050, Madison's population is projected to grow by another 178,000,
+          bringing the total
+          population to 739,000. Undoubtedly as the population grows, so too does the inevitable increase in traffic.
+          Therefore,
+          it is important and necessary that Madison's roadway network be structured to accommodate the rapid growth in
+          population and traffic.
+          More importantly, it is important to maintain the efficiency of rapid emergency response in the face of
+          growing
+          population and traffic.
+        </p>
+        <div class="wrapper2">
+          <img src="static/img/madisonmap.jpg" class="madisonmap" alt="Image">
+          <figcaption class="caption2">Figure 1. Madison Map</figcaption>
+        </div>
+      </div>
+
+      <h2 class="h2"> <strong>Madison City Road Introduction </strong></h2>
+      <div class="content-container2">
+        <p class="paragraph2">The region's transportation system provide critical connections to commerce, health care,
+          as
+          well as quick and
+          efficient movement of goods and services. According to the Madison Transportation Department, there are over
+          2800 miles of public
+          roadways in Madison Metropolitan Area and close to 550 bridges. </p>
+        <p class="paragraph2">The Madison city has a uniquely constrained roadway system due to the natural geography of
+          the area , with the
+          City of Madison's downtown sitting on an isthmus. Madison is centered on the state capitol and is expanding in
+          all directions.
+          However, the capitol is flanked by two very large lakes, Lake Mendota and Lake Monona. These two lakes divide
+          Madison's land area
+          into east and west and are connected by a long release parcel of land, which creates a great deal of pressure
+          on
+          Madison's traffic flow.
+          During the planning process for Madison, the planners designed a number of different roadway patterns, similar
+          to Gridiron and Radial,
+          as shown in figure 2. The different patterns have varying degrees of roadway connectivity, which provides some
+          relief from the heavy traffic
+          pressure.</p>
+        <div class="img-wrapper">
+          <img src="static/img/roadpattern.jpg" alt="Image" class="roadpattern">
+          <figcaption class="caption3">Figure 2. Road Patterns</figcaption>
+        </div>
+      </div>
+
+      <div class="content-container3">
+        <p class="paragraph3">However, the amount of car accidents remains high each year, despite
+          continuous improvements
+          to the road network.
+          According to the Madison Transportation Department, the total number of crashes in Madison in 2021 reached
+          3,161, with interaction crashes
+          reaching 2,162 and the number of injuries to people reaching 1,164. This means that with an increasing
+          population and traffic, Madison's road
+          network is still under very high pressure to meet people's needs. As you can see from our crash map, the high
+          volume arterials including the
+          State Capital Office area, East Washington Ave, and W Beltline Hwy have the highest crash frequencies. What's
+          more, crash densities are
+          concentrated in the State Capital area, which has a narrow topography that puts a lot of pressure on east-west
+          transit connections.
+          Therefore, in this case, in addition to proper planning and roadway improvements, it is very important to
+          ensure
+          that emergency response
+          is efficient, which will bring a great deal of security to people's lives.
+        </p>
+        <div class="img-wrapper2">
+          <img src="static/img/crash.jpg" alt="Image" class="crash">
+          <figcaption class="caption4">Figure 3. Crash Location and Crash Density</figcaption>
+        </div>
+      </div>
+
+      <div class="content-container4">
+        <p class="paragraph4">Due to the uniqueness of Madison's topography, which is
+          adjacent to two lakes, the
+          likelihood of natural disasters such as flooding.
+          For instance, is greater compared to other cities. In this case, it is also important to familiarize yourself
+          with the topography of Madison.
+          As we can see on the map, the middle area between Lake Mendota and Lake Monona is the lowest and the west side
+          of Madison is higher than the east side.
+          Therefore, if a disaster such as a flood occurs, the first area of the road network to be damaged is the
+          middle
+          area between the two lakes.
+          People should avoid that area. According to another study I did, when the water level in Madison rises to 1.49
+          meters, this will have a greater
+          impact on the connectivity of the road network.
+        </p>
+        <div class="img-wrapper3">
+          <img src="static/img/elevation.jpg" alt="Image" class="elevation">
+          <figcaption class="caption5">Figure 4. Madison Elevation Map</figcaption>
+        </div>
+      </div>
+
+
+      <h2 class="h3"><strong>Madison Road Network Analysis</strong></h2>
+      <p class="paragraph5">Efficient emergency response is critical in urban areas to ensure the safety and well-being
+        of residents during emergencies.
+        This projects aims to evaluate the emergency response routes for various types of emergencies (e.g., police,
+        fire, ambulance) by analyzing the existing
+        road network and traffic conditions. This is especially true for Madison, where the roadway network is limited
+        not only by topography, but also by
+        the pressures of traffic congestion and the effects of the harsh environment. All other things being equal, this
+        project evaluates how much the level
+        of traffic congestion affects the efficiency of emergency response.</p>
+      <p class="paragraph6">For our analysis, we used python packages such as OSMnx and NetworkX to construct the road
+        network and assign values to the network, such as road speed limits and traffic flow data.
+        Then a square area in Madison with a high level of traffic congestion (as shown in the figure) was selected to
+        calculate the average time to the nearest hospital for each road point in the area.
+        Thus to compare the efficiency of emergency response in the presence or absence of traffic congestion.</p>
+
+      <p class="paragraph6">Determining and assigning the effect of traffic flow on car speed and response time is a
+        very important issue in the calculation process. We use the formula Speed = (1-Traffic_data / Traffic_data.max)
+        * Speed_Limit. This means that the project assumes that the car travels at the speed limit of the road when
+        there are no cars on the road. When the traffic flow is at its maximum, the speed of the car is 0 km/h.
+        In other words, the traffic flow is used to redistribute the speed of each road. Then we can calculate
+        the effect of traffic flow on response time.</p>
+
+      <p class="paragraph6">By calculating the response time, the project found that for a square of 1,000 meters
+        around the state capital (Figure 5), the average time for the nearest hospital to arrive at the incident
+        location was
+        716 seconds when considering traffic. The average time for the nearest hospital to reach the incident location
+        without considering traffic is 670 seconds. This means that traffic conditions negatively impact response times
+        by 46 seconds. For the 1,000 meters box around East Highway 151 (Figure 6), the average time for the nearest
+        hospital to
+        reach the incident location is 937 seconds when considering traffic. When traffic is not considered, the average
+        time to reach the incident location is 886 seconds. This means that traffic has a negative impact on response
+        efficiency of 51 seconds. As we can see, traffic has a negative impact on response times of roughly 1 minute.
+        However, according to the policy, the optimal emergency response time is 300 seconds or 5 minutes.
+        Therefore, 1 minute still has a large impact on emergency response time requirements.</p>
+
+      <div class="content-container5">
+        <div class="img-wrapper4">
+          <img src="static/img/selectbox1.jpg" alt="Image" class="selectbox1">
+          <figcaption class="caption6">Figure 5. Selected Roads 1</figcaption>
+        </div>
+        <div class="img-wrapper5">
+          <img src="static/img/selectbox2.jpg" alt="Image" class="selectbox2">
+          <figcaption class="caption6">Figure 6. Selected Roads 2</figcaption>
+        </div>
+      </div>
+    </div>
+    <div class="container3">
+      <p class="paragraph7">
+        <br>Data Source: <a href='https://data-cityofmadison.opendata.arcgis.com/'>
+          City of Madison Open Data</a>,
+        <a
+          href='chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.greatermadisonmpo.org/planning/documents/RTP_2050_Chapter_3_Our_Transportation_System_FINAL.pdf'>
+          Our Transportation System</a>,
+        <a
+          href='chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.greatermadisonmpo.org/planning/documents/Ch-01-ConnectRTP-web.pdf'>
+          Connect Greater Madison 2050 Regional Transportation Plan</a>
+        | Cartographers: <a href='https://github.com/daniell23/2023_FinalProject'> Dong Gai</a> (dgai@wisc.edu)
+        <br>
+        </br>
+      </p>
+    </div>
+  </div>
+
+</body>
+
+</html>
+<script type="text/javascript" src="./static/js/func.js"></script>
