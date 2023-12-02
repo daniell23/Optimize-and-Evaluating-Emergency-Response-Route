@@ -370,6 +370,7 @@ new Vue({
     handleRefresh() {
       this.map.setCenter([-89.384226, 43.074682]);
       this.map.setZoom(11);
+      this.removeRouteLayer();
     },
     async getPlacePosition(placeName) {
       const placeUrl =
